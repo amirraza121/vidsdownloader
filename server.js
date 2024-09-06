@@ -77,6 +77,7 @@ app.post("/download", async (req, res) => {
           }
         });
       } else {
+        console.error(`Download process exited with code ${code}`);
         cleanupFile(output);
         res.status(500).send("Error downloading video");
       }
@@ -96,7 +97,7 @@ app.post("/download", async (req, res) => {
     });
   } catch (error) {
     console.error("Error in try block:", error);
-    res.status(500).send("Error downloading video");
+    res.status(500).send(`Error downloading video: ${error.message}`);
   }
 });
 
