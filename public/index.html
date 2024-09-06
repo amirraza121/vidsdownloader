@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Downloader</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Online Video Downloader</h1>
+        <p>Enter the video URL to download:</p>
+        <input type="url" id="videoUrl" placeholder="Enter video URL" required>
+        <br>
+        <!-- Google reCAPTCHA widget -->
+        <div class="g-recaptcha" data-sitekey="6LfErTgqAAAAAOAgL_FbbW5xXfTm5FFMoS_OnLJV"></div>
+        <br>
+        <button id="downloadButton" onclick="downloadVideo()">Download</button>
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-bar-fill" id="progressBarFill">0%</div>
+        </div>
+        <p class="wait-message" id="waitMessage">
+            <span class="spinner"></span> Processing your request, please wait...<br>
+            Do not exit or refresh the page.<br>
+            We are downloading the video in <strong>Highest</strong> quality available!
+        </p>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <p><a href="terms.html" target="_blank">Terms and Conditions</a></p>
+    </footer>
+
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        socket.on("downloadProgress", (progress) => {
+            console.log("Progress:", progress);
+            const progressBarFill = document.getElementById("progressBarFill");
+            progressBarFill.style.width = `${progress}%`;
+            progressBarFill.textContent = `${progress}%`;
+        });
+
+        async function downloadVideo() {
+            const urlInput = document.getElementById('videoUrl');
+            const url = urlInput.value;
+            console.log('URL:', url); // Log the URL
+            if (!url) {
+                alert('Please enter a video URL');
+                return;
+            }
+
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (recaptchaResponse.length === 0) {
+                alert('Please verify that you are not a robot.');
+                return;
+            }
+
+            // Show the wait message and progress bar
+            document.getElementById('waitMessage').style.display = 'block';
+            document.getElementById('progressBar').style.display = 'block';
+
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url, recaptchaResponse })
+                });
+                console.log('Response status:', response.status); // Log the response status
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = 'video.mp4';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } else {
+                    alert('Failed to download video');
+                }
+            } catch (error) {
+                console.error('Error:', error); // Log the error
+                alert('An error occurred while downloading the video');
+            } finally {
+                // Hide the wait message and progress bar after download completes or fails
+                document.getElementById('waitMessage').style.display = 'none';
+                document.getElementById('progressBar').style.display = 'none';
+                // Clear the URL input field
+                urlInput.value = '';
+                // Reset the progress bar
+                const progressBarFill = document.getElementById('progressBarFill');
+                progressBarFill.style.width = '0%';
+                progressBarFill.textContent = '0%';
+                // Reset reCAPTCHA
+                grecaptcha.reset();
+            }
+        }
+    </script>
+</body>
+
+</html>
