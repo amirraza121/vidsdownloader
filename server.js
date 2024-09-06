@@ -54,7 +54,8 @@ app.post("/download", async (req, res) => {
     const uniqueFileName = `video_${uuidv4()}.mp4`;
     const output = path.join(tempDir, uniqueFileName);
 
-    const command = `yt-dlp -f "bestvideo+bestaudio[ext=m4a]/best" --merge-output-format mp4 -o "${output}" ${url}`;
+    //const command = `yt-dlp -f "bestvideo+bestaudio[ext=m4a]/best" --merge-output-format mp4 -o "${output}" ${url}`;
+    const command = `/app/.heroku/yt-dlp -f "bestvideo+bestaudio[ext=m4a]/best" --merge-output-format mp4 -o "${output}" ${url}`;
     const process = exec(command);
 
     runningProcesses.set(process.pid, { process, output });
