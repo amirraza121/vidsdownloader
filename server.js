@@ -28,7 +28,7 @@ if (!fs.existsSync(tempDir)) {
 const runningProcesses = new Map();
 
 // Secret key from Google reCAPTCHA
-const RECAPTCHA_SECRET_KEY = "6LfErTgqAAAAAEGtYVdYKxt-tdLnven7oZQu3_cm"; //localhost secret key
+const RECAPTCHA_SECRET_KEY = "6LdItjgqAAAAALWbkFRObFwDL04UQ9zmAEFgdTMw"; //localhost secret key
 
 // Dynamic import for node-fetch
 async function getNodeFetch() {
