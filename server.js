@@ -27,13 +27,16 @@ if (!fs.existsSync(tempDir)) {
 // Store running processes
 const runningProcesses = new Map();
 
+// Secret key from Google reCAPTCHA
+const RECAPTCHA_SECRET_KEY = "6LfErTgqAAAAAEGtYVdYKxt-tdLnven7oZQu3_cm"; //localhost secret key
+
 // Dynamic import for node-fetch
 async function getNodeFetch() {
   return (await import("node-fetch")).default;
 }
 
 app.post("/download", async (req, res) => {
-  const { url } = req.body;
+  const { url, recaptchaResponse } = req.body;
 
   if (!url) {
     console.log("Invalid URL:", url);
@@ -41,6 +44,18 @@ app.post("/download", async (req, res) => {
   }
 
   try {
+    const fetch = await getNodeFetch(); // Dynamically import node-fetch
+
+    // Verify reCAPTCHA response
+    const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRET_KEY}&response=${recaptchaResponse}`;
+    const recaptchaRes = await fetch(verificationUrl, { method: "POST" });
+    const recaptchaData = await recaptchaRes.json();
+
+    if (!recaptchaData.success) {
+      console.log("reCAPTCHA verification failed:", recaptchaData);
+      return res.status(400).send("reCAPTCHA verification failed");
+    }
+
     console.log("Downloading video from URL:", url);
 
     // Generate a unique file name for the download
@@ -48,7 +63,11 @@ app.post("/download", async (req, res) => {
     const output = path.join(tempDir, uniqueFileName); // Save file in the temp directory
     console.log(output);
 
+    // const command = `yt-dlp -f "bestvideo+bestaudio/best" --merge-output-format mp4 -o "${output}" ${url}`;
+    //const command = `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" ${url}`;
+    //const command = yt-dlp -f bestvideo+bestaudio/best --merge-output-format mp4 -o "${output}" ${url};
     const command = `yt-dlp -f "bestvideo+bestaudio[ext=m4a]/best" --merge-output-format mp4 -o "${output}" ${url}`;
+    //const command = yt-dlp -f "137+140" --merge-output-format mp4 -o "${output}" ${url};
     const process = exec(command);
 
     // Store the process in the map

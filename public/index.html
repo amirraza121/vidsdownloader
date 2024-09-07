@@ -14,6 +14,9 @@
         <p>Enter the video URL to download:</p>
         <input type="url" id="videoUrl" placeholder="Enter video URL" required>
         <br>
+        <!-- Google reCAPTCHA widget -->
+        <div class="g-recaptcha" data-sitekey="6LfErTgqAAAAAOAgL_FbbW5xXfTm5FFMoS_OnLJV"></div>
+        <br>
         <button id="downloadButton" onclick="downloadVideo()">Download</button>
         <div class="progress-bar" id="progressBar">
             <div class="progress-bar-fill" id="progressBarFill">0%</div>
@@ -30,6 +33,7 @@
         <p><a href="terms.html" target="_blank">Terms and Conditions</a></p>
     </footer>
 
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
@@ -50,6 +54,12 @@
                 return;
             }
 
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (recaptchaResponse.length === 0) {
+                alert('Please verify that you are not a robot.');
+                return;
+            }
+
             // Show the wait message and progress bar
             document.getElementById('waitMessage').style.display = 'block';
             document.getElementById('progressBar').style.display = 'block';
@@ -60,7 +70,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ url }) // Removed recaptchaResponse
+                    body: JSON.stringify({ url, recaptchaResponse })
                 });
                 console.log('Response status:', response.status); // Log the response status
 
@@ -89,9 +99,10 @@
                 const progressBarFill = document.getElementById('progressBarFill');
                 progressBarFill.style.width = '0%';
                 progressBarFill.textContent = '0%';
+                // Reset reCAPTCHA
+                grecaptcha.reset();
             }
         }
-
     </script>
 </body>
 
