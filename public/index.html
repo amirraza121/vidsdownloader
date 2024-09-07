@@ -15,7 +15,7 @@
         <input type="url" id="videoUrl" placeholder="Enter video URL" required>
         <br>
         <!-- Google reCAPTCHA widget -->
-        <div class="g-recaptcha" data-sitekey="6LdItjgqAAAAAItmnMFkKGYLVKp8mMCQb-HVz_n7"></div>
+        <div class="g-recaptcha" data-sitekey="<%= process.env.RECAPTCHA_SITE_KEY %>"></div>
         <br>
         <button id="downloadButton" onclick="downloadVideo()">Download</button>
         <div class="progress-bar" id="progressBar">
